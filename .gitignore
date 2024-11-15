@@ -1,3 +1,4 @@
+# /application
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -38,3 +39,19 @@ application/.vercel
 # typescript
 application/*.tsbuildinfo
 application/next-env.d.ts
+
+# /smartcontract
+# Compiler files
+smartcontract/cache/
+smartcontract/out/
+
+# Ignores development broadcast logs
+smartcontract/!/broadcast
+smartcontract/broadcast/*/31337/
+smartcontract/broadcast/**/dry-run/
+
+# Docs
+smartcontract/docs/
+
+# Dotenv file
+smartcontract/.env
