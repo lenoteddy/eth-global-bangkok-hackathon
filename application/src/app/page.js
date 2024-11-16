@@ -67,7 +67,7 @@ export default function Home() {
           <b>Eligibility:</b>  In the event of a win, the prize will be divided equally among six participants.
           </li>
           <li className="mb-2"><b>Raffle Selection</b> Winners will be randomly selected from all eligible entries.</li>
-          <li className="mb-2"><b>Prize Distribution</b> If selected, the prize will be distributed to the winner's designated account or wallet.</li>
+          <li className="mb-2"><b>Prize Distribution</b> If selected, the prize will be distributed to the winner&lsquo;s designated account or wallet.</li>
           <li className="mb-2"><b>No Guarantee</b> Participation in the raffle does not guarantee a prize.</li>
           <li className="mb-2"><b>Event Dates</b> The raffle and prize division are valid only for the duration of the hackathon.</li>
           <li className="mb-2"><b>Changes to Terms</b> We reserve the right to modify these terms at any time during the event.</li>
