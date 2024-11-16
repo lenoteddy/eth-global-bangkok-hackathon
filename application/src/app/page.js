@@ -6,8 +6,28 @@ import Image from "next/image";
 export default function Home() {
 	// Set target date for Bangkok time (2024-11-17 23:59:59)
 	const targetDateInBangkok = new Date(Date.UTC(2024, 10, 17, 16, 59, 59)).getTime() + (7 * 60 * 60 * 1000);
-
 	const [timeLeft, setTimeLeft] = useState(null);
+	const [walletStatus, setWalletStatus] = useState(null);
+	const [walletAddress, setWalletAddress] = useState(null);
+
+	const connectARX = async () => {
+        try {
+            // --- request NFC command execution ---
+            const res = await execHaloCmdWeb({
+				name: "sign",
+				keyNo: 1,
+				message: ""
+			});
+            // the command has succeeded, display the result to the user
+			setWalletAddress(res.etherAddress);
+            setWalletStatus('');
+			console.log(res);
+        } catch (e) {
+            // the command has failed, display error to the user
+            setWalletStatus('Error: ' + String(e));
+			console.log(e);
+        }
+	}
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -41,12 +61,15 @@ export default function Home() {
 					priority
 				/>
 				<p>Enter the raffle by scanning the NFC chip.</p>
-				<button className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5">
+				<button className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5" onClick={connectARX}>
 					Scan
 				</button>
+				<div className="-mt-4">
+					{walletStatus && <div className="font-bold italic">{walletStatus}</div>}
+					{!walletStatus && <div className="italic">{walletAddress ? walletAddress : "Click scan button to connect your wallet"}</div>}
+				</div>
 				<p>Time left to enter the raffle:</p>
 				<div id="countdown" className="text-xl font-bold ">
-					{/* Conditionally render timeLeft once it's calculated */}
 					{timeLeft ? timeLeft : "Loading..."}
 				</div>
 				<p>By scanning your NFC tag, you automatically enter our raffle for a chance to win a share of the prize money. If our team wins a prize in this hackathon, the prize will be divided among six participants, rather than the usual five. This means that, if selected, you could win 1/6 of the total prize pool.</p>
