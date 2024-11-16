@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { execHaloCmdWeb } from '@arx-research/libhalo/api/web.js';
 
 export default function Home() {
 	// Set target date for Bangkok time (2024-11-17 23:59:59)
