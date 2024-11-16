@@ -36,12 +36,12 @@ contract Raffle is ERC721URIStorage, Ownable {
                             STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
 
-    uint256 private s_tokenId;
-    uint256 private s_minimalRewardAmount;
-    uint256 private constant MINIMAL_TIME_INTERVAL = 1 days;
+    uint256 public s_tokenId;
+    uint256 public s_minimalRewardAmount;
+    uint256 public constant MINIMAL_TIME_INTERVAL = 1 days;
     // uint256 private constant TIME_BEFORE_START = 1 days;
-    uint256 private constant TIME_BEFORE_START = 1 seconds;
-    mapping(address raffleOwner => RaffleInfo[]) private s_creatorsToRaffles;
+    uint256 public constant TIME_BEFORE_START = 1 seconds;
+    mapping(address raffleOwner => RaffleInfo[]) public s_creatorsToRaffles;
     RandomNumberGenerator public s_randomNumberGenerator;
 
     /*//////////////////////////////////////////////////////////////
