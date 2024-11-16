@@ -1,44 +1,47 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
-import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
-contract RandomNumberGenerator is VRFConsumerBaseV2 {
-    uint64 s_subscriptionId;
-    VRFCoordinatorV2Interface s_vrfCoordinator;
-    bytes32 s_keyHash;
-    uint32 s_callbackGasLimit;
-    uint16 s_requestConfirmations = 3;
-    uint32 s_numWords = 1;
+contract RandomNumberGenerator is VRFConsumerBaseV2Plus {
+    uint256 private immutable i_subscriptionId;
+    bytes32 private immutable i_gasLane;
+    uint32 private immutable i_callbackGasLimit;
+    uint16 private constant REQUEST_CONFIRMATIONS = 3;
+    uint32 private constant NUM_WORDS = 1;
 
     uint256 public s_randomWords;
 
     constructor(
-        uint64 _subscriptionId,
-        address _vrfCoordinator,
-        bytes32 _keyHash,
-        uint32 _callbackGasLimit
-    ) VRFConsumerBaseV2(_vrfCoordinator) {
-        s_subscriptionId = _subscriptionId;
-        s_vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);
-        s_keyHash = _keyHash;
-        s_callbackGasLimit = _callbackGasLimit;
+        uint256 subscriptionId,
+        bytes32 gasLane, // keyHash
+        uint32 callbackGasLimit,
+        address vrfCoordinatorV2
+    ) VRFConsumerBaseV2Plus(vrfCoordinatorV2) {
+        i_gasLane = gasLane;
+        i_subscriptionId = subscriptionId;
+        i_callbackGasLimit = callbackGasLimit;
     }
 
     function requestRandomNumber() public {
         s_vrfCoordinator.requestRandomWords(
-            s_keyHash,
-            s_subscriptionId,
-            s_requestConfirmations,
-            s_callbackGasLimit,
-            s_numWords
+            VRFV2PlusClient.RandomWordsRequest({
+                keyHash: i_gasLane,
+                subId: i_subscriptionId,
+                requestConfirmations: REQUEST_CONFIRMATIONS,
+                callbackGasLimit: i_callbackGasLimit,
+                numWords: NUM_WORDS,
+                extraArgs: VRFV2PlusClient._argsToBytes(
+                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+                )
+            })
         );
     }
 
     function fulfillRandomWords(
         uint256 /*_requestId*/,
-        uint256[] memory _randomWords
+        uint256[] calldata _randomWords
     ) internal override {
         s_randomWords = _randomWords[0];
     }
