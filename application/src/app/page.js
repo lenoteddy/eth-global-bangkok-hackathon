@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { execHaloCmdWeb } from '@arx-research/libhalo/api/web.js';
+import { execHaloCmdWeb } from "@arx-research/libhalo/api/web";
 
 export default function Home() {
 	// Set target date for Bangkok time (2024-11-17 23:59:59)
@@ -11,21 +11,34 @@ export default function Home() {
 	const [walletStatus, setWalletStatus] = useState(null);
 	const [walletAddress, setWalletAddress] = useState(null);
 
-	const connectARX = async () => {
+	const connectARX = async() => {
         try {
             // --- request NFC command execution ---
-            const res = await execHaloCmdWeb({
+			const command = {
 				name: "sign",
 				keyNo: 1,
-				message: ""
-			});
+				message: "010203",
+			};
+            const res = await execHaloCmdWeb(command, {
+                statusCallback: (cause) => {
+                    if (cause === "init") {
+                        setWalletStatus("Please tap the tag to the back of your smartphone and hold it...");
+                    } else if (cause === "retry") {
+                        setWalletStatus("Something went wrong, please try to tap the tag again...");
+                    } else if (cause === "scanned") {
+                        setWalletStatus("Tag scanned successfully, post-processing the result...");
+                    } else {
+                        setWalletStatus(cause);
+                    }
+                }
+            });
             // the command has succeeded, display the result to the user
 			setWalletAddress(res.etherAddress);
             setWalletStatus('');
 			console.log(res);
         } catch (e) {
             // the command has failed, display error to the user
-            setWalletStatus('Error: ' + String(e));
+            setWalletStatus('Scanning failed, click on the button again to retry. Details: ' + String(e));
 			console.log(e);
         }
 	}
