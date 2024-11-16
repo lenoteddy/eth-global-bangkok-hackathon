@@ -93,7 +93,7 @@ export default function Home() {
 		<div className="grid grid-rows-[20px_1fr_20px]   min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]">
 			<main className="flex flex-col gap-8 row-start-2  sm:items-start">
 				<h1 className="text-5xl font-bold tracking-tighter">Win a spot on our hackathon team</h1>
-				<Image src="/logo_win.svg" alt="Win logo" width={373} height={222} priority />
+				<Image src="/logo_win.svg" alt="Win logo" width={373} height={222} priority className="mb-6" />
 				{!walletAddress && (
 					<div>
 						<p className="mb-1">Enter the raffle by scanning the NFC chip.</p>
@@ -127,10 +127,10 @@ export default function Home() {
 					</div>
 				)}
 				{/* show this when we have a  WINNER */}
-				<h1 className="text-5xl font-bold tracking-tighter">We have a WINNER</h1>
-				<div className="bg-green py-2 px-3 rounded-lg mb-2  w-72 ">
-					<b className="text-xs ">WINNER WINNER WINNER </b>
-					<p className="truncate overflow-hidden whitespace-nowrap ">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
+				<h1 className="text-5xl font-bold tracking-tighter -mb-6">We have a WINNER</h1>
+				<div className="bg-green py-2 px-3 rounded-lg mb-2 w-72">
+					<b className="text-xs">WINNER WINNER WINNER</b>
+					<p className="truncate overflow-hidden whitespace-nowrap">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
 				</div>
 				<div>
 					<p>Time left to enter the raffle:</p>
@@ -139,7 +139,7 @@ export default function Home() {
 						{timeLeft ? timeLeft : "Loading..."}
 					</div>
 				</div>
-				<p>
+				<p className="text-justify">
 					By scanning your NFC tag, you automatically enter our raffle for a chance to win a share of the prize money. If our team wins a prize in this hackathon, the prize will be divided
 					among six participants, rather than the usual five. This means that, if selected, you could win 1/6 of the total prize pool.
 				</p>
