@@ -26,14 +26,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 // Get current user
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
-	const { method, raffle_owner, raffle_id, creator_address, raffle_nft_token_id } = req.query;
+	const { method, raffle_owner, raffle_id } = req.query;
 	const provider = new ethers.JsonRpcProvider(RPC_URL);
 	const contract = new ethers.Contract(RAFFLE_CONTRACT_ADDRESS, RAFFLE_CONTRACT_ABI, provider);
 	if (method === "winner") {
-		const result = await contract.getWinner(creator_address, raffle_nft_token_id);
-		res.status(200).json({ data: result });
+		try {
+			const result = await contract.getWinner(raffle_owner, raffle_id);
+			res.status(200).json({ data: result });
+		} catch (error: any) {
+			res.status(200).json({ data: null, message: error });
+		}
 	} else if (method === "deadline") {
-		const result = String(await contract.s_creatorsToRaffles(raffle_owner, raffle_id));
+		const result = String(await contract.getEndTime(raffle_owner, raffle_id));
 		res.status(200).json({ data: result });
 	}
 };
