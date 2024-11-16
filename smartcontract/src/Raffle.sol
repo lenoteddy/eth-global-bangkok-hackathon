@@ -270,7 +270,6 @@ contract Raffle is ERC721URIStorage, Ownable {
         uint256 index
     )
         public
-        view
         reachDeadline(
             s_creatorsToRaffles[creator][index].startTime +
                 s_creatorsToRaffles[creator][index].timeInterval
@@ -279,6 +278,13 @@ contract Raffle is ERC721URIStorage, Ownable {
         returns (address winner)
     {
         return _selectWinners(s_creatorsToRaffles[creator][index].linkedNft);
+    }
+
+    function getTimeInterval(
+        address creator,
+        uint256 index
+    ) external view returns (uint256) {
+        return s_creatorsToRaffles[creator][index].timeInterval;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -301,7 +307,8 @@ contract Raffle is ERC721URIStorage, Ownable {
 
     function _selectWinners(
         address _linkedNftAddredss
-    ) internal view returns (address winnerAddress) {
+    ) internal returns (address winnerAddress) {
+        s_randomNumberGenerator.requestRandomNumber();
         uint256 randomNumbers = _getRandomNumbers();
         LinkedNft linkedNft = LinkedNft(_linkedNftAddredss);
         uint256 counter = linkedNft.getCounter();
