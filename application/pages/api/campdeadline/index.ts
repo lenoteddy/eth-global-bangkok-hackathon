@@ -43,8 +43,12 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
 
   console.log("a");
   // console.log(creator_wallet_address);
-  const raffleInfo = await contract.s_creatorsToRaffles("0x76967Ce1457D65703445FbE024Dd487A151ad993",0);
-
+  const raffleInfo = await contract.s_creatorsToRaffles(
+    "0x76967Ce1457D65703445FbE024Dd487A151ad993",
+    0
+  );
   const timeInterval = raffleInfo.timeInterval;
-  console.log(timeInterval);
+  res
+    .status(200)
+    .json({ data: timeInterval.toString(), message: "Time Interval" });
 };
