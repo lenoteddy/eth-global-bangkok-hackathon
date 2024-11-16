@@ -38,7 +38,8 @@ contract Raffle is ERC721URIStorage, Ownable {
 
     uint256 public s_tokenId;
     uint256 public s_minimalRewardAmount;
-    uint256 public constant MINIMAL_TIME_INTERVAL = 1 days;
+    // uint256 public constant MINIMAL_TIME_INTERVAL = 1 days;
+    uint256 public constant MINIMAL_TIME_INTERVAL = 1 seconds;
     // uint256 private constant TIME_BEFORE_START = 1 days;
     uint256 public constant TIME_BEFORE_START = 1 seconds;
     mapping(address raffleOwner => RaffleInfo[]) public s_creatorsToRaffles;
@@ -250,25 +251,34 @@ contract Raffle is ERC721URIStorage, Ownable {
 
     // after the time passed, the raffle will start to select winner and distribute the rewards
     function distributeRewards(
+        address creator,
         uint256 index
-    )
-        external
-        reachDeadline(
-            s_creatorsToRaffles[msg.sender][index].startTime +
-                s_creatorsToRaffles[msg.sender][index].timeInterval
-        )
-        raffleIsActive(s_creatorsToRaffles[msg.sender][index].active)
-        returns (address winner)
-    {
-        RaffleInfo storage raffleInfo = s_creatorsToRaffles[msg.sender][index];
+    ) external returns (address winner) {
+        RaffleInfo storage raffleInfo = s_creatorsToRaffles[creator][index];
         raffleInfo.active = RaffleStatus.COMPLETED;
         uint256 rewardAmount = raffleInfo.rewardAmount;
-        winner = _selectWinners(raffleInfo.linkedNft);
+        winner = getWinner(creator, index);
         (bool success, ) = winner.call{value: rewardAmount}("");
         if (!success) {
             revert Raffle__TransferFailed();
         }
         return winner;
+    }
+
+    function getWinner(
+        address creator,
+        uint256 index
+    )
+        public
+        view
+        reachDeadline(
+            s_creatorsToRaffles[creator][index].startTime +
+                s_creatorsToRaffles[creator][index].timeInterval
+        )
+        raffleIsActive(s_creatorsToRaffles[creator][index].active)
+        returns (address winner)
+    {
+        return _selectWinners(s_creatorsToRaffles[creator][index].linkedNft);
     }
 
     /*//////////////////////////////////////////////////////////////
