@@ -50,6 +50,10 @@ export default function Home() {
         <a className="text-bold rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5">
         Scan
           </a>
+        <div className="mt-2 "> Or
+        <a className="pl-1 text-bold text-sm sm:text-base underline cursor-pointer">
+        use wallet
+          </a></div>
 </div>
 
 <div>
@@ -57,7 +61,7 @@ export default function Home() {
         <p className="text-left font-bold ">Successfully entered the raffle:</p>
         </div>
         <div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72 border border-green border-2">
-    {/* <b className="text-xs">16/11/2024 03:44</b> */}
+    {/* show this when successfully scanned the NFC tag */}
     <p className="truncate overflow-hidden whitespace-nowrap ">
       0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad
     </p>
@@ -66,7 +70,16 @@ export default function Home() {
   </div>
   </div>
 
+    {/* show this when we have a  WINNER */}
+    <h1 className="text-5xl font-bold tracking-tighter">We have a WINNER</h1>
+    <div className="bg-green py-2 px-3 rounded-lg mb-2  w-72 ">
+    <b className="text-xs ">WINNER WINNER WINNER </b>
+    <p className="truncate overflow-hidden whitespace-nowrap ">
+      0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad
+    </p>
 
+
+  </div>
 <div>
         <p>Time left to enter the raffle:</p>
         <div id="countdown" className="text-4xl font-bold ">
