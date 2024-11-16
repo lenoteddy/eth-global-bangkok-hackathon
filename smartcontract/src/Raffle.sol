@@ -5,7 +5,8 @@ import {ERC721URIStorage, ERC721} from "@openzeppelin/contracts/token/ERC721/ext
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {LinkedNft} from "./LinkedNft.sol";
+import {RandomNumberGenerator} from "src/RandomNumberGenerator.sol";
+import {LinkedNft} from "src/LinkedNft.sol";
 
 contract Raffle is ERC721URIStorage, Ownable {
     using Strings for uint256;
@@ -16,10 +17,9 @@ contract Raffle is ERC721URIStorage, Ownable {
     struct RaffleInfo {
         uint256 timeInterval; // time interval for the raffle
         uint256 startTime; // start time of the raffle
-        uint256 nftCount; // number of NFTs to be distributed
         string description; // reference to IPFS link
         string imageURI; // image for the raffle
-        uint256 rewardParticipants; // number of participants to be rewarded,
+        // uint256 rewardParticipants; // number of participants to be rewarded, for this case, only one
         uint256 rewardAmount; // total reward amount
         string tokenURI; // token URI
         RaffleStatus active; // if the campaign is active
@@ -42,7 +42,7 @@ contract Raffle is ERC721URIStorage, Ownable {
     // uint256 private constant TIME_BEFORE_START = 1 days;
     uint256 private constant TIME_BEFORE_START = 1 seconds;
     mapping(address raffleOwner => RaffleInfo[]) private s_creatorsToRaffles;
-    LinkedNft public s_linkedNft;
+    RandomNumberGenerator public s_randomNumberGenerator;
 
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
@@ -54,6 +54,7 @@ contract Raffle is ERC721URIStorage, Ownable {
     error Raffle__NotEnoughTimePassed();
     error Raffle__TransferFailed();
     error Raffle__AlreadyCompleted();
+    error Raffle__NotActive();
 
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
@@ -63,10 +64,8 @@ contract Raffle is ERC721URIStorage, Ownable {
         address to,
         uint256 timeInterval,
         uint256 startTime,
-        uint256 nftCount,
         string description,
         string imageURI,
-        uint256 rewardParticipants,
         uint256 rewardAmount,
         string tokenURI,
         address linkedNft
@@ -90,16 +89,6 @@ contract Raffle is ERC721URIStorage, Ownable {
         _;
     }
 
-    modifier participantsLessThanNftCount(
-        uint256 nftCount,
-        uint256 rewardParticipants
-    ) {
-        if (rewardParticipants > nftCount) {
-            revert Raffle__rewardParticipantsGreaterThanNftCount();
-        }
-        _;
-    }
-
     modifier enoughTimePassedBeforeStart(uint256 startTime) {
         if (block.timestamp < startTime) {
             revert Raffle__NotEnoughTimePassed();
@@ -114,14 +103,31 @@ contract Raffle is ERC721URIStorage, Ownable {
         _;
     }
 
+    modifier reachDeadline(uint256 deadline) {
+        if (block.timestamp < deadline) {
+            revert Raffle__NotEnoughTimePassed();
+        }
+        _;
+    }
+
+    modifier raffleIsActive(RaffleStatus active) {
+        if (active != RaffleStatus.ACTIVE) {
+            revert Raffle__NotActive();
+        }
+        _;
+    }
+
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTORS
     //////////////////////////////////////////////////////////////*/
 
-    constructor() ERC721("RaffleNft", "RN") Ownable(msg.sender) {
+    constructor(
+        address _randomNumberGenerator
+    ) ERC721("RaffleNft", "RN") Ownable(msg.sender) {
         s_tokenId = 0;
         // s_minimalRewardAmount = 1e17; // 0.1 ETH
         s_minimalRewardAmount = 0.01 ether;
+        s_randomNumberGenerator = RandomNumberGenerator(_randomNumberGenerator);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -134,17 +140,14 @@ contract Raffle is ERC721URIStorage, Ownable {
         string memory symbol,
         address owner,
         uint256 timeInterval,
-        uint256 nftCount,
         string memory description,
         string memory imageURI,
-        uint256 rewardParticipants,
         address linkedNft
     )
         external
         payable
         timeIntervalEnough(timeInterval)
         rewardAmountEnough(msg.value)
-        participantsLessThanNftCount(nftCount, rewardParticipants)
     {
         string memory tokenURI = string(
             abi.encodePacked(
@@ -171,12 +174,6 @@ contract Raffle is ERC721URIStorage, Ownable {
                             '{"trait_type": "Time Interval", "value": "',
                             Strings.toString(timeInterval),
                             '"},',
-                            '{"trait_type": "NFT Count", "value": "',
-                            Strings.toString(nftCount),
-                            '"},',
-                            '{"trait_type": "Reward Participants", "value": "',
-                            Strings.toString(rewardParticipants),
-                            '"},',
                             '{"trait_type": "Linked NFT", "value": "',
                             Strings.toHexString(
                                 uint256(uint160(linkedNft)),
@@ -195,10 +192,8 @@ contract Raffle is ERC721URIStorage, Ownable {
             RaffleInfo(
                 timeInterval,
                 block.timestamp + TIME_BEFORE_START,
-                nftCount,
                 description,
                 imageURI,
-                rewardParticipants,
                 msg.value,
                 tokenURI,
                 RaffleStatus.INACTIVE,
@@ -210,10 +205,8 @@ contract Raffle is ERC721URIStorage, Ownable {
             owner,
             timeInterval,
             block.timestamp + TIME_BEFORE_START,
-            nftCount,
             description,
             imageURI,
-            rewardParticipants,
             msg.value,
             tokenURI,
             linkedNft
@@ -240,9 +233,6 @@ contract Raffle is ERC721URIStorage, Ownable {
                 s_tokenId,
                 s_creatorsToRaffles[msg.sender][index].tokenURI
             );
-            address linkedNft = s_creatorsToRaffles[msg.sender][index]
-                .linkedNft;
-            LinkedNft(linkedNft).initialize(address(this), s_tokenId);
             s_tokenId++;
         } else {
             // if the campaign is not active, return the reward
@@ -258,6 +248,27 @@ contract Raffle is ERC721URIStorage, Ownable {
         }
     }
 
+    // after the time passed, the raffle will start to select winner and distribute the rewards
+    function distributeRewards(
+        uint256 index
+    )
+        external
+        reachDeadline(
+            s_creatorsToRaffles[msg.sender][index].startTime +
+                s_creatorsToRaffles[msg.sender][index].timeInterval
+        )
+        raffleIsActive(s_creatorsToRaffles[msg.sender][index].active)
+    {
+        RaffleInfo storage raffleInfo = s_creatorsToRaffles[msg.sender][index];
+        raffleInfo.active = RaffleStatus.COMPLETED;
+        uint256 rewardAmount = raffleInfo.rewardAmount;
+        address winner = _selectWinners(raffleInfo.linkedNft);
+        (bool success, ) = winner.call{value: rewardAmount}("");
+        if (!success) {
+            revert Raffle__TransferFailed();
+        }
+    }
+
     /*//////////////////////////////////////////////////////////////
                             OWNER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -266,6 +277,24 @@ contract Raffle is ERC721URIStorage, Ownable {
         uint256 minimalRewardAmount
     ) external onlyOwner {
         s_minimalRewardAmount = minimalRewardAmount;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function _getRandomNumbers() internal view returns (uint256) {
+        return s_randomNumberGenerator.getRandomWords();
+    }
+
+    function _selectWinners(
+        address _linkedNftAddredss
+    ) internal view returns (address winnerAddress) {
+        uint256 randomNumbers = _getRandomNumbers();
+        LinkedNft linkedNft = LinkedNft(_linkedNftAddredss);
+        uint256 counter = linkedNft.getCounter();
+        uint256 winner = randomNumbers % counter;
+        return linkedNft.ownerOf(winner);
     }
 
     /*//////////////////////////////////////////////////////////////

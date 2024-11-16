@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Raffle} from "./Raffle.sol";
-
 contract UserEmitEvent {
     event UserEvent(
         address indexed userWalletAddress,
@@ -11,9 +9,10 @@ contract UserEmitEvent {
     );
 
     function interactWithCampaign(
+        address to,
         address raffle,
         uint256 raffleNftTokenId
     ) public {
-        emit UserEvent(msg.sender, raffle, raffleNftTokenId);
+        emit UserEvent(to, raffle, raffleNftTokenId);
     }
 }
