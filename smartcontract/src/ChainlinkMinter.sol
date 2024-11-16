@@ -1,5 +1,6 @@
-// SPDX-License-dentifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
+
 import {LinkedNft} from "./LinkedNft.sol";
 import {Raffle} from "./Raffle.sol";
 
