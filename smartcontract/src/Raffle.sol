@@ -250,19 +250,15 @@ contract Raffle is ERC721URIStorage, Ownable {
     }
 
     // after the time passed, the raffle will start to select winner and distribute the rewards
-    function distributeRewards(
-        address creator,
-        uint256 index
-    ) external returns (address winner) {
+    function distributeRewards(address creator, uint256 index) external {
         RaffleInfo storage raffleInfo = s_creatorsToRaffles[creator][index];
         raffleInfo.active = RaffleStatus.COMPLETED;
         uint256 rewardAmount = raffleInfo.rewardAmount;
-        winner = getWinner(creator, index);
+        address winner = getWinner(creator, index);
         (bool success, ) = winner.call{value: rewardAmount}("");
         if (!success) {
             revert Raffle__TransferFailed();
         }
-        return winner;
     }
 
     function getWinner(
@@ -308,14 +304,22 @@ contract Raffle is ERC721URIStorage, Ownable {
     }
 
     function _selectWinners(
-        address _linkedNftAddredss
+        address _linkedNftAddress
     ) internal returns (address winnerAddress) {
-        s_randomNumberGenerator.requestRandomNumber();
         uint256 randomNumbers = _getRandomNumbers();
-        LinkedNft linkedNft = LinkedNft(_linkedNftAddredss);
-        uint256 counter = linkedNft.getCounter();
-        uint256 winner = randomNumbers % counter;
-        return linkedNft.ownerOf(winner);
+        if (randomNumbers == 0) {
+            s_randomNumberGenerator.requestRandomNumber();
+            randomNumbers = _getRandomNumbers();
+            LinkedNft linkedNft = LinkedNft(_linkedNftAddress);
+            uint256 counter = linkedNft.getCounter();
+            uint256 winner = randomNumbers % counter;
+            return linkedNft.ownerOf(winner);
+        } else {
+            LinkedNft linkedNft = LinkedNft(_linkedNftAddress);
+            uint256 counter = linkedNft.getCounter();
+            uint256 winner = randomNumbers % counter;
+            return linkedNft.ownerOf(winner);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
