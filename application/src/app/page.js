@@ -7,14 +7,14 @@ import { useLogin } from "@privy-io/react-auth";
 import axios from "axios";
 
 export default function Home() {
-	// Set target date for Bangkok time (2024-11-17 23:59:59)
-	const targetDateInBangkok = new Date(Date.UTC(2024, 10, 17, 16, 59, 59)).getTime() + 7 * 60 * 60 * 1000;
 	const [timeLeft, setTimeLeft] = useState(null);
 	const [walletStatus, setWalletStatus] = useState(null);
 	const [walletAddress, setWalletAddress] = useState(null);
 	// smart contract data
 	const [participantNumber, setParticipantNumber] = useState(null);
 	const [participants, setParticipants] = useState([]);
+	const [winner, setWinner] = useState(null);
+	const [endTime, setEndTime] = useState(0);
 	// button function
 	const connectARX = async () => {
 		try {
@@ -38,6 +38,10 @@ export default function Home() {
 				},
 			});
 			// the command has succeeded, display the result to the user
+			if (res.etherAddress) {
+				const resCheck = await axios.get("/api/participants?address=" + res.etherAddress);
+				if (resCheck.data.data == 0) await axios.get("api/register?raffle_nft_token_id=0&user_wallet_address=" + res.etherAddress);
+			}
 			setWalletAddress(res.etherAddress);
 			setWalletStatus("");
 			console.log(res);
@@ -50,6 +54,10 @@ export default function Home() {
 	};
 	const { login } = useLogin({
 		onComplete: async (user) => {
+			if (user.wallet.address) {
+				const resCheck = await axios.get("/api/participants?address=" + user.wallet.address);
+				if (resCheck.data.data == 0) await axios.get("api/register?raffle_nft_token_id=0&user_wallet_address=" + user.wallet.address);
+			}
 			setWalletAddress(user.wallet.address);
 		},
 		onError: (error) => {
@@ -60,7 +68,7 @@ export default function Home() {
 	useEffect(() => {
 		const interval = setInterval(() => {
 			const currentTime = new Date().getTime();
-			const remainingTime = targetDateInBangkok - currentTime;
+			const remainingTime = endTime - currentTime;
 			if (remainingTime <= 0) {
 				setTimeLeft("Time's up!");
 				clearInterval(interval); // Stop the countdown when it's done
@@ -73,12 +81,12 @@ export default function Home() {
 			}
 		}, 1000);
 		return () => clearInterval(interval); // Cleanup the interval on component unmount
-	}, [targetDateInBangkok]);
+	}, [endTime]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
 			const currentTime = new Date().getTime();
-			const remainingTime = targetDateInBangkok - currentTime;
+			const remainingTime = endTime - currentTime;
 			if (remainingTime <= 0) {
 				setTimeLeft("Time's up!");
 				clearInterval(interval); // Stop the countdown when it's done
@@ -91,7 +99,7 @@ export default function Home() {
 			}
 		}, 1000);
 		return () => clearInterval(interval); // Cleanup the interval on component unmount
-	}, [targetDateInBangkok]);
+	}, [endTime]);
 
 	useEffect(() => {
 		(async () => {
@@ -104,6 +112,23 @@ export default function Home() {
 				for (let i = 0; i < res.data.data; i++) {
 					const res = await axios.get("/api/participants?tokenId=" + i);
 					setParticipants((prevItems) => [...prevItems, res.data.data]);
+				}
+			} catch (err) {
+				console.log(err);
+			}
+		})();
+	}, []);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				// get deadline
+				const resDeadline = await axios.get("/api/raffle?method=deadline&raffle_owner=0xFB6a372F2F51a002b390D18693075157A459641F&raffle_id=0");
+				setEndTime(resDeadline.data.data * 1000);
+				// get winner
+				const resWinner = await axios.get("/api/raffle?method=winner&raffle_owner=0xFB6a372F2F51a002b390D18693075157A459641F&raffle_id=0");
+				if (resWinner.data.data) {
+					setWinner(resWinner.data.data);
 				}
 			} catch (err) {
 				console.log(err);
@@ -148,12 +173,15 @@ export default function Home() {
 						)}
 					</div>
 				)}
-				{/* show this when we have a  WINNER */}
-				<h1 className="text-5xl font-bold tracking-tighter">We have a WINNER</h1>
-				<div className="bg-green py-2 px-3 rounded-lg mb-2  w-72 ">
-					<b className="text-xs ">WINNER WINNER WINNER </b>
-					<p className="truncate overflow-hidden whitespace-nowrap ">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
-				</div>
+				{winner && (
+					<div>
+						<h1 className="text-5xl font-bold tracking-tighter">We have a WINNER</h1>
+						<div className="bg-green py-2 px-3 rounded-lg mb-2  w-72 ">
+							<b className="text-xs ">WINNER WINNER WINNER </b>
+							<p className="truncate overflow-hidden whitespace-nowrap ">{winner}</p>
+						</div>
+					</div>
+				)}
 				<div>
 					<p>Time left to enter the raffle:</p>
 					<div id="countdown" className="text-4xl font-bold ">
