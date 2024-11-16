@@ -94,21 +94,23 @@ export default function Home() {
 			<main className="flex flex-col gap-8 row-start-2  sm:items-start">
 				<h1 className="text-5xl font-bold tracking-tighter">Win a spot on our hackathon team</h1>
 				<Image src="/logo_win.svg" alt="Win logo" width={373} height={222} priority />
-				<div>
-					<p className="mb-1">Enter the raffle by scanning the NFC chip.</p>
-					<button
-						className="text-bold w-full rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-						onClick={connectARX}
-					>
-						Scan
-					</button>
-					<div className="mt-2">
-						Or{" "}
-						<a className="text-bold text-sm sm:text-base underline cursor-pointer" onClick={() => login({ loginMethods: ["email", "wallet"] })}>
-							use other method
-						</a>
+				{!walletAddress && (
+					<div>
+						<p className="mb-1">Enter the raffle by scanning the NFC chip.</p>
+						<button
+							className="text-bold w-full rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+							onClick={connectARX}
+						>
+							Scan
+						</button>
+						<div className="mt-2">
+							Or{" "}
+							<a className="text-bold text-sm sm:text-base underline cursor-pointer" onClick={() => login({ loginMethods: ["email", "wallet"] })}>
+								use other method
+							</a>
+						</div>
 					</div>
-				</div>
+				)}
 				{walletStatus && <div className="font-bold italic">{walletStatus}</div>}
 				{!walletStatus && (
 					<div className="italic">
