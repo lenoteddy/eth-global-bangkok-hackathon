@@ -4,14 +4,18 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { execHaloCmdWeb } from "@arx-research/libhalo/api/web";
 import { useLogin } from "@privy-io/react-auth";
+import axios from "axios";
 
 export default function Home() {
 	// Set target date for Bangkok time (2024-11-17 23:59:59)
 	const targetDateInBangkok = new Date(Date.UTC(2024, 10, 17, 16, 59, 59)).getTime() + 7 * 60 * 60 * 1000;
-	const TotalNumberOfParticipants = "123";
 	const [timeLeft, setTimeLeft] = useState(null);
 	const [walletStatus, setWalletStatus] = useState(null);
 	const [walletAddress, setWalletAddress] = useState(null);
+	// smart contract data
+	const [participantNumber, setParticipantNumber] = useState(null);
+	const [participants, setParticipants] = useState([]);
+	// button function
 	const connectARX = async () => {
 		try {
 			// --- request NFC command execution ---
@@ -89,6 +93,24 @@ export default function Home() {
 		return () => clearInterval(interval); // Cleanup the interval on component unmount
 	}, [targetDateInBangkok]);
 
+	useEffect(() => {
+		(async () => {
+			try {
+				// get number of participants
+				const res = await axios.get("/api/participants");
+				setParticipantNumber(res.data.data);
+				// get wallet address of participants
+				setParticipants([]);
+				for (let i = 0; i < res.data.data; i++) {
+					const res = await axios.get("/api/participants?tokenId=" + i);
+					setParticipants((prevItems) => [...prevItems, res.data.data]);
+				}
+			} catch (err) {
+				console.log(err);
+			}
+		})();
+	}, []);
+
 	return (
 		<div className="grid grid-rows-[20px_1fr_20px]   min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]">
 			<main className="flex flex-col gap-8 row-start-2  sm:items-start">
@@ -135,7 +157,6 @@ export default function Home() {
 				<div>
 					<p>Time left to enter the raffle:</p>
 					<div id="countdown" className="text-4xl font-bold ">
-						{/* Conditionally render timeLeft once it's calculated */}
 						{timeLeft ? timeLeft : "Loading..."}
 					</div>
 				</div>
@@ -143,27 +164,20 @@ export default function Home() {
 					By scanning your NFC tag, you automatically enter our raffle for a chance to win a share of the prize money. If our team wins a prize in this hackathon, the prize will be divided
 					among six participants, rather than the usual five. This means that, if selected, you could win 1/6 of the total prize pool.
 				</p>
-				<div>
-					<div className="pb-2">
-						<p className="text-left font-bold ">{TotalNumberOfParticipants} participants in the raffle:</p>
+				{participantNumber > 0 && (
+					<div>
+						<div className="pb-2">
+							<p className="text-left font-bold ">{participantNumber} participants in the raffle:</p>
+						</div>
+						{participants.map((val, key) => {
+							return (
+								<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2 w-72" key={key}>
+									<p className="truncate overflow-hidden whitespace-nowrap">{val}</p>
+								</div>
+							);
+						})}
 					</div>
-					<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72">
-						<b className="text-xs">16/11/2024 03:44</b>
-						<p className="truncate overflow-hidden whitespace-nowrap ">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
-					</div>
-					<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72">
-						<b className="text-xs">16/11/2024 03:44</b>
-						<p className="truncate overflow-hidden whitespace-nowrap ">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
-					</div>
-					<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72">
-						<b className="text-xs">16/11/2024 03:44</b>
-						<p className="truncate overflow-hidden whitespace-nowrap ">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
-					</div>
-					<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72">
-						<b className="text-xs">16/11/2024 03:44</b>
-						<p className="truncate overflow-hidden whitespace-nowrap ">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
-					</div>
-				</div>
+				)}
 				<div>
 					<div className="pb-2">
 						<p className="text-left font-bold ">Terms and Conditions:</p>
