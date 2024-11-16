@@ -4,8 +4,10 @@ out = "out"
 libs = ["lib"]
 
 remappings = [
+    '@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/',
     "@openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/",
 ]
+
 
 via-ir = true
 
