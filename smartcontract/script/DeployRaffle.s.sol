@@ -6,7 +6,7 @@ import {Raffle} from "src/Raffle.sol";
 
 contract DeployRaffle is Script {
     address owner = 0xFB6a372F2F51a002b390D18693075157A459641F;
-    address randomNumberGeneration = 0xCc67861552Bf06688eaB9A0F9bc3c43b906Cba2c;
+    address randomNumberGeneration = 0x4dD01797126924A50a48CA43EAEaD277d3E57aA5;
 
     function run() external returns (Raffle) {
         vm.startBroadcast(owner);

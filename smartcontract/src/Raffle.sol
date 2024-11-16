@@ -36,12 +36,13 @@ contract Raffle is ERC721URIStorage, Ownable {
                             STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
 
-    uint256 private s_tokenId;
-    uint256 private s_minimalRewardAmount;
-    uint256 private constant MINIMAL_TIME_INTERVAL = 1 days;
+    uint256 public s_tokenId;
+    uint256 public s_minimalRewardAmount;
+    // uint256 public constant MINIMAL_TIME_INTERVAL = 1 days;
+    uint256 public constant MINIMAL_TIME_INTERVAL = 1 seconds;
     // uint256 private constant TIME_BEFORE_START = 1 days;
-    uint256 private constant TIME_BEFORE_START = 1 seconds;
-    mapping(address raffleOwner => RaffleInfo[]) private s_creatorsToRaffles;
+    uint256 public constant TIME_BEFORE_START = 1 seconds;
+    mapping(address raffleOwner => RaffleInfo[]) public s_creatorsToRaffles;
     RandomNumberGenerator public s_randomNumberGenerator;
 
     /*//////////////////////////////////////////////////////////////
@@ -249,24 +250,39 @@ contract Raffle is ERC721URIStorage, Ownable {
     }
 
     // after the time passed, the raffle will start to select winner and distribute the rewards
-    function distributeRewards(
-        uint256 index
-    )
-        external
-        reachDeadline(
-            s_creatorsToRaffles[msg.sender][index].startTime +
-                s_creatorsToRaffles[msg.sender][index].timeInterval
-        )
-        raffleIsActive(s_creatorsToRaffles[msg.sender][index].active)
-    {
-        RaffleInfo storage raffleInfo = s_creatorsToRaffles[msg.sender][index];
+    function distributeRewards(address creator, uint256 index) external {
+        RaffleInfo storage raffleInfo = s_creatorsToRaffles[creator][index];
         raffleInfo.active = RaffleStatus.COMPLETED;
         uint256 rewardAmount = raffleInfo.rewardAmount;
-        address winner = _selectWinners(raffleInfo.linkedNft);
+        address winner = getWinner(creator, index);
         (bool success, ) = winner.call{value: rewardAmount}("");
         if (!success) {
             revert Raffle__TransferFailed();
         }
+    }
+
+    function getWinner(
+        address creator,
+        uint256 index
+    )
+        public
+        reachDeadline(
+            s_creatorsToRaffles[creator][index].startTime +
+                s_creatorsToRaffles[creator][index].timeInterval
+        )
+        raffleIsActive(s_creatorsToRaffles[creator][index].active)
+        returns (address winner)
+    {
+        return _selectWinners(s_creatorsToRaffles[creator][index].linkedNft);
+    }
+
+    function getEndTime(
+        address creator,
+        uint256 index
+    ) external view returns (uint256) {
+        return
+            s_creatorsToRaffles[creator][index].startTime +
+            s_creatorsToRaffles[creator][index].timeInterval;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -288,13 +304,22 @@ contract Raffle is ERC721URIStorage, Ownable {
     }
 
     function _selectWinners(
-        address _linkedNftAddredss
-    ) internal view returns (address winnerAddress) {
+        address _linkedNftAddress
+    ) internal returns (address winnerAddress) {
         uint256 randomNumbers = _getRandomNumbers();
-        LinkedNft linkedNft = LinkedNft(_linkedNftAddredss);
-        uint256 counter = linkedNft.getCounter();
-        uint256 winner = randomNumbers % counter;
-        return linkedNft.ownerOf(winner);
+        if (randomNumbers == 0) {
+            s_randomNumberGenerator.requestRandomNumber();
+            randomNumbers = _getRandomNumbers();
+            LinkedNft linkedNft = LinkedNft(_linkedNftAddress);
+            uint256 counter = linkedNft.getCounter();
+            uint256 winner = randomNumbers % counter;
+            return linkedNft.ownerOf(winner);
+        } else {
+            LinkedNft linkedNft = LinkedNft(_linkedNftAddress);
+            uint256 counter = linkedNft.getCounter();
+            uint256 winner = randomNumbers % counter;
+            return linkedNft.ownerOf(winner);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
