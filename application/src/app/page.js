@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { execHaloCmdWeb } from "@arx-research/libhalo/api/web";
+import { useLogin } from "@privy-io/react-auth";
 
 export default function Home() {
 	// Set target date for Bangkok time (2024-11-17 23:59:59)
@@ -43,6 +44,14 @@ export default function Home() {
 			console.log(e);
 		}
 	};
+	const { login } = useLogin({
+		onComplete: async (user) => {
+			setWalletAddress(user.wallet.address);
+		},
+		onError: (error) => {
+			setWalletStatus(error);
+		},
+	});
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -94,7 +103,10 @@ export default function Home() {
 						Scan
 					</button>
 					<div className="mt-2">
-						Or <a className="text-bold text-sm sm:text-base underline cursor-pointer">use wallet</a>
+						Or{" "}
+						<a className="text-bold text-sm sm:text-base underline cursor-pointer" onClick={() => login({ loginMethods: ["email", "wallet"] })}>
+							use other method
+						</a>
 					</div>
 				</div>
 				{walletStatus && <div className="font-bold italic">{walletStatus}</div>}
