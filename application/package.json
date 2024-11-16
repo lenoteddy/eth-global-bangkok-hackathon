@@ -11,6 +11,9 @@
   "dependencies": {
     "axios": "^1.7.7",
     "ethers": "^6.13.4",
+    "@arx-research/libhalo": "^1.10.6",
+    "@privy-io/react-auth": "1.94.2",
+    "@privy-io/server-auth": "1.16.3",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106"
