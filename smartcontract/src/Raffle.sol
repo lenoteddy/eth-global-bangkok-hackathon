@@ -258,15 +258,17 @@ contract Raffle is ERC721URIStorage, Ownable {
                 s_creatorsToRaffles[msg.sender][index].timeInterval
         )
         raffleIsActive(s_creatorsToRaffles[msg.sender][index].active)
+        returns (address winner)
     {
         RaffleInfo storage raffleInfo = s_creatorsToRaffles[msg.sender][index];
         raffleInfo.active = RaffleStatus.COMPLETED;
         uint256 rewardAmount = raffleInfo.rewardAmount;
-        address winner = _selectWinners(raffleInfo.linkedNft);
+        winner = _selectWinners(raffleInfo.linkedNft);
         (bool success, ) = winner.call{value: rewardAmount}("");
         if (!success) {
             revert Raffle__TransferFailed();
         }
+        return winner;
     }
 
     /*//////////////////////////////////////////////////////////////
