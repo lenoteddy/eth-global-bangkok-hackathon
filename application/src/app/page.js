@@ -62,6 +62,24 @@ export default function Home() {
 		return () => clearInterval(interval); // Cleanup the interval on component unmount
 	}, [targetDateInBangkok]);
 
+	useEffect(() => {
+		const interval = setInterval(() => {
+			const currentTime = new Date().getTime();
+			const remainingTime = targetDateInBangkok - currentTime;
+			if (remainingTime <= 0) {
+				setTimeLeft("Time's up!");
+				clearInterval(interval); // Stop the countdown when it's done
+			} else {
+				const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+				const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+				const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+				const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+				setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+			}
+		}, 1000);
+		return () => clearInterval(interval); // Cleanup the interval on component unmount
+	}, [targetDateInBangkok]);
+
 	return (
 		<div className="grid grid-rows-[20px_1fr_20px]   min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]">
 			<main className="flex flex-col gap-8 row-start-2  sm:items-start">
@@ -70,45 +88,40 @@ export default function Home() {
 				<div>
 					<p className="mb-1">Enter the raffle by scanning the NFC chip.</p>
 					<button
-						className="text-bold rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+						className="text-bold w-full rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
 						onClick={connectARX}
 					>
 						Scan
 					</button>
-				</div>
-				<div className="-mt-6">
-					{walletStatus && <div className="font-bold italic">{walletStatus}</div>}
-					{!walletStatus && (
-						<div className="italic">
-							{walletAddress ? (
-								<div>
-									<div className="pb-2">
-										<p className="text-left font-bold ">Successfully entered the raffle:</p>
-									</div>
-									<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72 border-2 border-green">
-										<p className="truncate overflow-hidden whitespace-nowrap">{walletAddress}</p>
-									</div>
-								</div>
-							) : (
-								"Click scan button to connect your wallet"
-							)}
-						</div>
-					)}
-				</div>
-				{/* {walletStatus && <div className="font-bold italic">{walletStatus}</div>}
-				{walletAddress && (
-					<div>
-						<div className="pb-2">
-							<p className="text-left font-bold ">Successfully entered the raffle:</p>
-						</div>
-						<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72 border-2 border-green">
-							<p className="truncate overflow-hidden whitespace-nowrap">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
-						</div>
+					<div className="mt-2">
+						Or <a className="text-bold text-sm sm:text-base underline cursor-pointer">use wallet</a>
 					</div>
-				)} */}
+				</div>
+				{walletStatus && <div className="font-bold italic">{walletStatus}</div>}
+				{!walletStatus && (
+					<div className="italic">
+						{walletAddress && (
+							<div>
+								<div className="pb-2">
+									<p className="text-left font-bold ">Successfully entered the raffle:</p>
+								</div>
+								<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72 border-2 border-green">
+									<p className="truncate overflow-hidden whitespace-nowrap">{walletAddress}</p>
+								</div>
+							</div>
+						)}
+					</div>
+				)}
+				{/* show this when we have a  WINNER */}
+				<h1 className="text-5xl font-bold tracking-tighter">We have a WINNER</h1>
+				<div className="bg-green py-2 px-3 rounded-lg mb-2  w-72 ">
+					<b className="text-xs ">WINNER WINNER WINNER </b>
+					<p className="truncate overflow-hidden whitespace-nowrap ">0xa36337cf4848f8145E0Fa7214DD51B5D5652EAad</p>
+				</div>
 				<div>
 					<p>Time left to enter the raffle:</p>
 					<div id="countdown" className="text-4xl font-bold ">
+						{/* Conditionally render timeLeft once it's calculated */}
 						{timeLeft ? timeLeft : "Loading..."}
 					</div>
 				</div>
@@ -117,7 +130,7 @@ export default function Home() {
 					among six participants, rather than the usual five. This means that, if selected, you could win 1/6 of the total prize pool.
 				</p>
 				<div>
-					<div className="pb-2 ">
+					<div className="pb-2">
 						<p className="text-left font-bold ">{TotalNumberOfParticipants} participants in the raffle:</p>
 					</div>
 					<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2  w-72">
@@ -152,7 +165,7 @@ export default function Home() {
 							<b>Raffle Selection</b> Winners will be randomly selected from all eligible entries.
 						</li>
 						<li className="mb-2">
-							<b>Prize Distribution</b> If selected, the prize will be distributed to the winner&laquo;s designated account or wallet.
+							<b>Prize Distribution</b> If selected, the prize will be distributed to the winner&lsquo;s designated account or wallet.
 						</li>
 						<li className="mb-2">
 							<b>No Guarantee</b> Participation in the raffle does not guarantee a prize.
