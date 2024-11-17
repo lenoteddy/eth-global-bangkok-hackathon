@@ -252,10 +252,10 @@ contract Raffle is ERC721URIStorage, Ownable {
 
     // after the time passed, the raffle will start to select winner and distribute the rewards
     function distributeRewards(address creator, uint256 index) external {
+        address winner = getWinner(creator, index);
         RaffleInfo storage raffleInfo = s_creatorsToRaffles[creator][index];
         raffleInfo.active = RaffleStatus.COMPLETED;
         uint256 rewardAmount = raffleInfo.rewardAmount;
-        address winner = getWinner(creator, index);
         (bool success, ) = winner.call{value: rewardAmount}("");
         if (!success) {
             revert Raffle__TransferFailed();
