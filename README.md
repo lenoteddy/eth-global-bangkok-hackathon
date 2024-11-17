@@ -1,4 +1,4 @@
-**Win-Win**
+<h1>Win-Win</h1>
 
 <img src="https://eth-global-bangkok-hackathon.vercel.app/logo_win.svg" />
 
