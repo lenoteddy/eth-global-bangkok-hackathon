@@ -41,6 +41,7 @@ contract Raffle is ERC721URIStorage, Ownable {
     // uint256 public constant MINIMAL_TIME_INTERVAL = 1 days;
     uint256 public constant MINIMAL_TIME_INTERVAL = 1 seconds;
     // uint256 private constant TIME_BEFORE_START = 1 days;
+    // for test just maybe 1 second
     uint256 public constant TIME_BEFORE_START = 1 seconds;
     mapping(address raffleOwner => RaffleInfo[]) public s_creatorsToRaffles;
     RandomNumberGenerator public s_randomNumberGenerator;
