@@ -195,12 +195,17 @@ export default function Home() {
 				{participantNumber > 0 && (
 					<div>
 						<div className="pb-2">
-							<p className="text-left font-bold ">{participantNumber} participants in the raffle:</p>
+							<p className="text-left font-bold">{participantNumber} participants in the raffle:</p>
+							<p className="text-sm text-left italic">*click to see the nft</p>
 						</div>
 						{participants.map((val, key) => {
 							return (
 								<div className="bg-lightgreen py-2 px-3 rounded-lg mb-2 w-72" key={key}>
-									<p className="truncate overflow-hidden whitespace-nowrap">{val}</p>
+									<p className="truncate overflow-hidden whitespace-nowrap">
+										<a href={`https://amoy.polygonscan.com/nft/${process.env.NEXT_PUBLIC_LINKED_NFT}/${key}`} target="_blank" rel="noreferrer" className="underline">
+											{val}
+										</a>
+									</p>
 								</div>
 							);
 						})}
