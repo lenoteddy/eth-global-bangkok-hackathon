@@ -112,13 +112,6 @@ contract Raffle is ERC721URIStorage, Ownable {
         _;
     }
 
-    modifier raffleIsActive(RaffleStatus active) {
-        if (active != RaffleStatus.ACTIVE) {
-            revert Raffle__NotActive();
-        }
-        _;
-    }
-
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTORS
     //////////////////////////////////////////////////////////////*/
@@ -271,7 +264,6 @@ contract Raffle is ERC721URIStorage, Ownable {
             s_creatorsToRaffles[creator][index].startTime +
                 s_creatorsToRaffles[creator][index].timeInterval
         )
-        raffleIsActive(s_creatorsToRaffles[creator][index].active)
         returns (address winner)
     {
         return _selectWinners(s_creatorsToRaffles[creator][index].linkedNft);
